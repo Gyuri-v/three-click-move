@@ -166,6 +166,9 @@ const checkIntersects = function () {
                     cameraIntervalNum++
                 }, 10);
                 orbitControls.target.set(destinationPoint.x, destinationPoint.y, destinationPoint.z)
+                setTimeout(function () {
+                    clearInterval(cameraInterval);
+                }, 1000);
                 // const targetInterval = setInterval(function () {
                 //     orbitControls.target.set(
                 //         targetMovesPoints[targetIntervalNum].x,
@@ -174,9 +177,6 @@ const checkIntersects = function () {
                 //     );
                 //     targetIntervalNum++
                 // }, 10);
-                setTimeout(function () {
-                    clearInterval(cameraInterval);
-                }, 1000);
                 // setTimeout(function () {
                 //     clearInterval(targetInterval);
                 // }, 1000);
