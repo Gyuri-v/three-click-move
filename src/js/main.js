@@ -35,7 +35,7 @@ const init = function () {
     orbitControls = new OrbitControls( camera, renderer.domElement );
     orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(85);
     orbitControls.target.set(0, 4, AREAVALUE / 2);
-    orbitControls.enableZoom = false;
+    // orbitControls.enableZoom = false;
 
     // Light
     ambientLight = new THREE.AmbientLight('#fff', 0.5);
@@ -109,6 +109,9 @@ const createMesh = function () {
     
 }
 
+const createMoveRoute = function () {
+}
+
 const calcMousePoint = function (e) {
     mousePoint.x = (e.clientX / canvas.clientWidth) * 2 - 1;
     mousePoint.y = -(e.clientY / canvas.clientHeight  * 2 - 1);
@@ -119,26 +122,80 @@ const raycasting = function () {
     checkIntersects();
 }
 
+let cameraMoves, cameraMovesPoints;
+let targetMoves, targetMovesPoints;
 const checkIntersects = function () {
     const intersects = raycaster.intersectObjects(meshes);
     for (const item of intersects) {
         if ( item.object.name === 'floor' ) {
             destinationPoint.x = item.point.x;
+            destinationPoint.y = 4;
             destinationPoint.z = item.point.z;
 
+
+
             if ( isMouseClick ) {
+                // isCameraMoving = true;
+
+                cameraMoves = new THREE.CatmullRomCurve3([
+                    camera.position, 
+                    new THREE.Vector3(camera.position.x, destinationPoint.y, camera.position.z + (destinationPoint.z - camera.position.z) / 2),
+                    destinationPoint
+                ])
+                cameraMovesPoints = cameraMoves.getSpacedPoints(100);
+
+                // targetMoves = new THREE.CatmullRomCurve3([
+                //     camera.position, 
+                //     destinationPoint
+                // ])
+                // targetMovesPoints = cameraMoves.getSpacedPoints(100);
+                // const cameraMovesLine = new THREE.Line(
+                //     new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
+                //     new THREE.LineBasicMaterial({ color: 'red' })
+                // );
+                // scene.add(cameraMovesLine);
+
+                let cameraIntervalNum = 0;
+                let targetIntervalNum = 0;
+                const cameraInterval = setInterval(function () {
+                    camera.position.set(
+                        cameraMovesPoints[cameraIntervalNum].x,
+                        cameraMovesPoints[cameraIntervalNum].y,
+                        cameraMovesPoints[cameraIntervalNum].z
+                    );
+                    cameraIntervalNum++
+                }, 10);
+                orbitControls.target.set(destinationPoint.x, destinationPoint.y, destinationPoint.z)
+                // const targetInterval = setInterval(function () {
+                //     orbitControls.target.set(
+                //         targetMovesPoints[targetIntervalNum].x,
+                //         targetMovesPoints[targetIntervalNum].y,
+                //         targetMovesPoints[targetIntervalNum].z
+                //     );
+                //     targetIntervalNum++
+                // }, 10);
                 setTimeout(function () {
-                    gsap.to(camera.position, {
-                        duration: 0.5,
-                        x: destinationPoint.x,
-                        z: destinationPoint.z,
-                    });
-                    gsap.to(orbitControls.target, {
-                        duration: 0.5,
-                        x: destinationPoint.x,
-                        z: destinationPoint.z - 5,
-                    });
-                }, 100);
+                    clearInterval(cameraInterval);
+                }, 1000);
+                // setTimeout(function () {
+                //     clearInterval(targetInterval);
+                // }, 1000);
+
+                
+
+
+                // setTimeout(function () {
+                //     gsap.to(camera.position, {
+                //         duration: 0.5,
+                //         x: destinationPoint.x,
+                //         z: destinationPoint.z,
+                //     });
+                //     gsap.to(orbitControls.target, {
+                //         duration: 0.5,
+                //         x: destinationPoint.x,
+                //         z: destinationPoint.z - 5,
+                //     });
+                // }, 100);
 
                 isMouseClick = false;
             }
@@ -149,9 +206,34 @@ const checkIntersects = function () {
     }
 }
 
+// let isCameraMoving = false;
+// let cameraAngle = 0;
+// let targetAngle = 0;
 const draw = function () {
-    // if ( isPressed ) {
-    //     raycasting();
+    // if ( isCameraMoving ) {
+    //     cameraAngle = Math.atan2(
+    //         destinationPoint.z - camera.position.z,
+    //         destinationPoint.x - camera.position.x,
+    //     );
+    //     targetAngle = Math.atan2(
+    //         destinationPoint.z - camera.position.z - 5,
+    //         destinationPoint.x - camera.position.x,
+    //     );
+
+    //     console.log(cameraAngle, targetAngle);
+
+    //     camera.position.x += Math.cos(cameraAngle) * 0.5;
+    //     camera.position.z += Math.sin(cameraAngle) * 0.5;
+
+    //     orbitControls.target.x += Math.cos(targetAngle) * 0.5;
+    //     orbitControls.target.z += Math.sin(targetAngle) * 0.5;
+        
+    //     if (
+    //         Math.abs(destinationPoint.x - camera.position.x) < 0.3 &&
+    //         Math.abs(destinationPoint.z - camera.position.z) < 0.3
+    //     ) {
+    //         isCameraMoving = false;
+    //     }
     // }
 
     orbitControls.update();
