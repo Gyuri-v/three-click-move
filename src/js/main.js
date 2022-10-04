@@ -149,11 +149,11 @@ const checkIntersects = function () {
                 //     destinationPoint
                 // ])
                 // targetMovesPoints = cameraMoves.getSpacedPoints(100);
-                // const cameraMovesLine = new THREE.Line(
-                //     new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
-                //     new THREE.LineBasicMaterial({ color: 'red' })
-                // );
-                // scene.add(cameraMovesLine);
+                const cameraMovesLine = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
+                    new THREE.LineBasicMaterial({ color: 'red' })
+                );
+                scene.add(cameraMovesLine);
 
                 let cameraIntervalNum = 0;
                 let targetIntervalNum = 0;
@@ -166,9 +166,6 @@ const checkIntersects = function () {
                     cameraIntervalNum++
                 }, 10);
                 orbitControls.target.set(destinationPoint.x, destinationPoint.y, destinationPoint.z)
-                setTimeout(function () {
-                    clearInterval(cameraInterval);
-                }, 1000);
                 // const targetInterval = setInterval(function () {
                 //     orbitControls.target.set(
                 //         targetMovesPoints[targetIntervalNum].x,
@@ -177,6 +174,9 @@ const checkIntersects = function () {
                 //     );
                 //     targetIntervalNum++
                 // }, 10);
+                setTimeout(function () {
+                    clearInterval(cameraInterval);
+                }, 1000);
                 // setTimeout(function () {
                 //     clearInterval(targetInterval);
                 // }, 1000);
