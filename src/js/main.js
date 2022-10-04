@@ -11,6 +11,10 @@ let AREAVALUE = 50;
 
 let renderer, scene, camera, ambientLight, pointLight, orbitControls, raycaster, preventDragClick;
 let pointerMesh;
+let mousePoint = new THREE.Vector2();
+let destinationPoint = new THREE.Vector3();
+let meshes = [];
+let isMouseClick = false;
 
 const init = function () {
     // Renderer
@@ -41,6 +45,28 @@ const init = function () {
 
     // Mesh
     createMesh();
+
+    // Raycaster
+    raycaster = new THREE.Raycaster();
+
+    // PreventDragClick
+    preventDragClick = new PreventDragClick(canvas);
+
+    // Event
+    canvas.addEventListener('click', (e) => {
+        if ( preventDragClick.mouseMoved ) return;
+        isMouseClick = true;
+        // calcMousePoint(e);
+        raycasting();
+    });
+    canvas.addEventListener('mouseup', (e) => {
+        // isPressed = false;
+        isMouseClick = false;
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        calcMousePoint(e);
+        raycasting();
+    });
 }
 
 const createMesh = function () {
@@ -51,6 +77,7 @@ const createMesh = function () {
     const floorMesh = new THREE.Mesh(basicGeometry, basicMateroal);
     floorMesh.rotation.x = -Math.PI / 2;
     floorMesh.name = 'floor';
+    meshes.push(floorMesh);
     scene.add(floorMesh);
 
     // Wall
@@ -82,7 +109,57 @@ const createMesh = function () {
     
 }
 
+const calcMousePoint = function (e) {
+    mousePoint.x = (e.clientX / canvas.clientWidth) * 2 - 1;
+    mousePoint.y = -(e.clientY / canvas.clientHeight  * 2 - 1);
+}
+
+const raycasting = function () {
+    raycaster.setFromCamera(mousePoint, camera);
+    checkIntersects();
+}
+
+const checkIntersects = function () {
+    const intersects = raycaster.intersectObjects(meshes);
+    for (const item of intersects) {
+        if ( item.object.name === 'floor' ) {
+            destinationPoint.x = item.point.x;
+            destinationPoint.z = item.point.z;
+
+            if ( isMouseClick ) {
+                // let xGap = (destinationPoint.x - orbitControls.target.x) / 2;
+                // let xCameraPosition = destinationPoint.x > orbitControls.target.x ? destinationPoint.x - xGap : destinationPoint.x + xGap;
+
+                // console.log(xGap, xCameraPosition)
+
+                setTimeout(function () {
+                    gsap.to(camera.position, {
+                        duration: 0.5,
+                        x: destinationPoint.x,
+                        z: destinationPoint.z,
+                    });
+                    gsap.to(orbitControls.target, {
+                        duration: 0.5,
+                        x: destinationPoint.x,
+                        z: destinationPoint.z - 5,
+                    });
+                    console.log(orbitControls.target);
+                }, 100);
+
+                isMouseClick = false;
+            }
+            
+            pointerMesh.position.x = destinationPoint.x;
+            pointerMesh.position.z = destinationPoint.z;
+        }
+    }
+}
+
 const draw = function () {
+    // if ( isPressed ) {
+    //     raycasting();
+    // }
+
     orbitControls.update();
 
     renderer.render( scene, camera );
