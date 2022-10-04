@@ -127,11 +127,6 @@ const checkIntersects = function () {
             destinationPoint.z = item.point.z;
 
             if ( isMouseClick ) {
-                // let xGap = (destinationPoint.x - orbitControls.target.x) / 2;
-                // let xCameraPosition = destinationPoint.x > orbitControls.target.x ? destinationPoint.x - xGap : destinationPoint.x + xGap;
-
-                // console.log(xGap, xCameraPosition)
-
                 setTimeout(function () {
                     gsap.to(camera.position, {
                         duration: 0.5,
@@ -143,7 +138,6 @@ const checkIntersects = function () {
                         x: destinationPoint.x,
                         z: destinationPoint.z - 5,
                     });
-                    console.log(orbitControls.target);
                 }, 100);
 
                 isMouseClick = false;
