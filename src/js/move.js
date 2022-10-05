@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import gsap from 'gsap';
 import { PreventDragClick } from './PreventDragClick';
 
@@ -9,7 +10,7 @@ let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 let AREAVALUE = 50;
 
-let renderer, scene, camera, ambientLight, pointLight, orbitControls, raycaster, preventDragClick;
+let renderer, scene, camera, ambientLight, pointLight, orbitControls, pointerLockControls, raycaster, preventDragClick;
 let pointerMesh;
 let mousePoint = new THREE.Vector2();
 let destinationPoint = new THREE.Vector3();
@@ -34,8 +35,11 @@ const init = function () {
     // Controls
     orbitControls = new OrbitControls( camera, renderer.domElement );
     orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(85);
-    orbitControls.target.set(0, 4, AREAVALUE / 2);
-    // orbitControls.enableZoom = false;
+    // orbitControls.target.set(0, 4, AREAVALUE / 2);
+    orbitControls.enableZoom = false;
+    orbitControls.maxDistance = 30; 
+    orbitControls.minDistance = 4; 
+    
 
     // Light
     ambientLight = new THREE.AmbientLight('#fff', 0.5);
@@ -132,8 +136,6 @@ const checkIntersects = function () {
             destinationPoint.y = 4;
             destinationPoint.z = item.point.z;
 
-
-
             if ( isMouseClick ) {
                 // isCameraMoving = true;
 
@@ -144,11 +146,6 @@ const checkIntersects = function () {
                 ])
                 cameraMovesPoints = cameraMoves.getSpacedPoints(100);
 
-                // targetMoves = new THREE.CatmullRomCurve3([
-                //     camera.position, 
-                //     destinationPoint
-                // ])
-                // targetMovesPoints = cameraMoves.getSpacedPoints(100);
                 const cameraMovesLine = new THREE.Line(
                     new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
                     new THREE.LineBasicMaterial({ color: 'red' })
@@ -156,7 +153,6 @@ const checkIntersects = function () {
                 scene.add(cameraMovesLine);
 
                 let cameraIntervalNum = 0;
-                let targetIntervalNum = 0;
                 const cameraInterval = setInterval(function () {
                     camera.position.set(
                         cameraMovesPoints[cameraIntervalNum].x,
@@ -165,37 +161,9 @@ const checkIntersects = function () {
                     );
                     cameraIntervalNum++
                 }, 10);
-                orbitControls.target.set(destinationPoint.x, destinationPoint.y, destinationPoint.z)
-                // const targetInterval = setInterval(function () {
-                //     orbitControls.target.set(
-                //         targetMovesPoints[targetIntervalNum].x,
-                //         targetMovesPoints[targetIntervalNum].y,
-                //         targetMovesPoints[targetIntervalNum].z
-                //     );
-                //     targetIntervalNum++
-                // }, 10);
                 setTimeout(function () {
                     clearInterval(cameraInterval);
                 }, 1000);
-                // setTimeout(function () {
-                //     clearInterval(targetInterval);
-                // }, 1000);
-
-                
-
-
-                // setTimeout(function () {
-                //     gsap.to(camera.position, {
-                //         duration: 0.5,
-                //         x: destinationPoint.x,
-                //         z: destinationPoint.z,
-                //     });
-                //     gsap.to(orbitControls.target, {
-                //         duration: 0.5,
-                //         x: destinationPoint.x,
-                //         z: destinationPoint.z - 5,
-                //     });
-                // }, 100);
 
                 isMouseClick = false;
             }
@@ -206,35 +174,8 @@ const checkIntersects = function () {
     }
 }
 
-// let isCameraMoving = false;
-// let cameraAngle = 0;
-// let targetAngle = 0;
 const draw = function () {
-    // if ( isCameraMoving ) {
-    //     cameraAngle = Math.atan2(
-    //         destinationPoint.z - camera.position.z,
-    //         destinationPoint.x - camera.position.x,
-    //     );
-    //     targetAngle = Math.atan2(
-    //         destinationPoint.z - camera.position.z - 5,
-    //         destinationPoint.x - camera.position.x,
-    //     );
-
-    //     console.log(cameraAngle, targetAngle);
-
-    //     camera.position.x += Math.cos(cameraAngle) * 0.5;
-    //     camera.position.z += Math.sin(cameraAngle) * 0.5;
-
-    //     orbitControls.target.x += Math.cos(targetAngle) * 0.5;
-    //     orbitControls.target.z += Math.sin(targetAngle) * 0.5;
-        
-    //     if (
-    //         Math.abs(destinationPoint.x - camera.position.x) < 0.3 &&
-    //         Math.abs(destinationPoint.z - camera.position.z) < 0.3
-    //     ) {
-    //         isCameraMoving = false;
-    //     }
-    // }
+    console.log(orbitControls.target, camera.position)
 
     orbitControls.update();
 
@@ -259,3 +200,10 @@ const setSize = function () {
 init();
 draw();
 window.addEventListener('resize', setSize);
+
+
+
+/*
+- draw 에서 적용되도록 수정
+- lerp 이용
+*/
