@@ -10,12 +10,15 @@ let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 let AREAVALUE = 50;
 
-let renderer, scene, camera, ambientLight, pointLight, orbitControls, pointerLockControls, raycaster, preventDragClick;
+let renderer, scene, camera, ambientLight, pointLight, raycaster, preventDragClick;
+let cameraMoves, cameraMovesPoints, cameraMovesTarget;
 let pointerMesh;
 let mousePoint = new THREE.Vector2();
 let destinationPoint = new THREE.Vector3();
 let meshes = [];
 let isMouseClick = false;
+let startTime = 0;
+let isCameraMove = false;
 
 const init = function () {
     // Renderer
@@ -129,8 +132,6 @@ const raycasting = function () {
     checkIntersects();
 }
 
-let cameraMoves, cameraMovesPoints, cameraMovesTarget;
-let targetMoves, targetMovesPoints;
 const checkIntersects = function () {
     const intersects = raycaster.intersectObjects(meshes);
     pointerMesh.material.opacity = 0;
@@ -147,7 +148,6 @@ const checkIntersects = function () {
                     new THREE.Vector3(item.object.position.x, item.object.position.y, item.object.position.z + 5)
                 );
                 cameraMovesPoints = cameraMoves.getSpacedPoints(100);
-
                 cameraMovesTarget = item.object.position;
 
                 isMouseClick = false;
@@ -172,32 +172,6 @@ const checkIntersects = function () {
                 );
                 cameraMovesPoints = cameraMoves.getSpacedPoints(100);
 
-                // const cameraMovesLine = new THREE.Line(
-                //     new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
-                //     new THREE.LineBasicMaterial({ color: 'red' })
-                // );
-                // scene.add(cameraMovesLine);
-                
-                // targetMoves = new THREE.CatmullRomCurve3([
-                //     orbitControls.target, 
-                //     destinationPoint
-                // ])
-                // targetMovesPoints = targetMoves.getSpacedPoints(100);
-
-                // let targetIntervalNum = 0;
-                // const targetInterval = setInterval(function () {
-                //     orbitControls.target.set(
-                //         targetMovesPoints[targetIntervalNum].x,
-                //         targetMovesPoints[targetIntervalNum].y,
-                //         targetMovesPoints[targetIntervalNum].z
-                //     );
-                //     targetIntervalNum++
-                // }, 10);
-
-                // setTimeout(function () {
-                //     clearInterval(targetInterval);
-                // }, 1000);
-
                 isMouseClick = false;
             }
             
@@ -207,8 +181,6 @@ const checkIntersects = function () {
     }
 }
 
-let startTime = 0;
-let isCameraMove = false;
 const draw = function () {
 
     if ( isCameraMove ) {
@@ -255,9 +227,3 @@ init();
 draw();
 window.addEventListener('resize', setSize);
 
-
-
-/*
-- draw 에서 적용되도록 수정
-- lerp 이용
-*/
