@@ -61,13 +61,14 @@ const init = function () {
         if ( preventDragClick.mouseMoved ) return;
         isMouseClick = true;
         // calcMousePoint(e);
-        // raycasting();
+        raycasting();
     });
     canvas.addEventListener('mouseup', (e) => {
         // isPressed = false;
         isMouseClick = false;
     });
     canvas.addEventListener('mousemove', (e) => {
+        console.log('move');
         calcMousePoint(e);
         raycasting();
     });
@@ -96,7 +97,9 @@ const createMesh = function () {
         new THREE.BoxGeometry(1, 1, 1), 
         new THREE.MeshStandardMaterial({ color: 'red' })
     );
-    boxMesh.position.set(-5, 2, -AREAVALUE / 2);
+    boxMesh.position.set(-5, 2, -AREAVALUE / 2)
+    boxMesh.name = 'box';
+    meshes.push(boxMesh);;
     scene.add(boxMesh);
 
     // pointer
@@ -116,9 +119,6 @@ const createMesh = function () {
     
 }
 
-const createMoveRoute = function () {
-}
-
 const calcMousePoint = function (e) {
     mousePoint.x = (e.clientX / canvas.clientWidth) * 2 - 1;
     mousePoint.y = -(e.clientY / canvas.clientHeight  * 2 - 1);
@@ -129,13 +129,31 @@ const raycasting = function () {
     checkIntersects();
 }
 
-let cameraMoves, cameraMovesPoints, cameraMoves2, cameraMovesPoints2;
+let cameraMoves, cameraMovesPoints, cameraMovesTarget;
 let targetMoves, targetMovesPoints;
 const checkIntersects = function () {
     const intersects = raycaster.intersectObjects(meshes);
     pointerMesh.material.opacity = 0;
     
     for (const item of intersects) {
+        if ( item.object.name === 'box' ) {
+            if ( isMouseClick ) {
+                isCameraMove = true;
+                startTime = Date.now();
+
+                cameraMoves = new THREE.QuadraticBezierCurve3(
+                    camera.position,
+                    new THREE.Vector3(camera.position.x, item.object.position.y, camera.position.z + (item.object.position.z - camera.position.z) / 2),
+                    new THREE.Vector3(item.object.position.x, item.object.position.y, item.object.position.z + 5)
+                );
+                cameraMovesPoints = cameraMoves.getSpacedPoints(100);
+
+                cameraMovesTarget = item.object.position;
+
+                isMouseClick = false;
+            }
+        }
+
         if ( item.object.name === 'floor' ) {
             pointerMesh.material.opacity = 1;
 
@@ -203,15 +221,17 @@ const draw = function () {
                 cameraMovesPoints[elapsed].z
             );
         }
-        console.log(cameraMovesPoints[elapsed], camera.position);
 
         if ( elapsed > cameraMovesPoints.length ) {
+            if ( cameraMovesTarget ) {
+                const ddd = camera.position;
+                ddd.lerp(cameraMovesTarget, 0.05);
+                cameraMovesTarget = null;
+            }
             elapsed = 0;
             isCameraMove = false;
         }
     }
-
-    // orbitControls.update();
 
     renderer.render( scene, camera );
     renderer.setAnimationLoop(draw);
