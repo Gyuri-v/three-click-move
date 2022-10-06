@@ -33,12 +33,12 @@ const init = function () {
     scene.add(camera);
 
     // Controls
-    orbitControls = new OrbitControls( camera, renderer.domElement );
-    orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(85);
+    // orbitControls = new OrbitControls( camera, renderer.domElement );
+    // orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(85);
     // orbitControls.target.set(0, 4, AREAVALUE / 2);
-    orbitControls.enableZoom = false;
-    orbitControls.maxDistance = 30; 
-    orbitControls.minDistance = 4; 
+    // // orbitControls.enableZoom = false;
+    // orbitControls.maxDistance = 30; 
+    // orbitControls.minDistance = 4; 
     
 
     // Light
@@ -61,7 +61,7 @@ const init = function () {
         if ( preventDragClick.mouseMoved ) return;
         isMouseClick = true;
         // calcMousePoint(e);
-        raycasting();
+        // raycasting();
     });
     canvas.addEventListener('mouseup', (e) => {
         // isPressed = false;
@@ -86,7 +86,9 @@ const createMesh = function () {
 
     // Wall
     const wallMesh = new THREE.Mesh(basicGeometry, basicMateroal);
-    wallMesh.position.set(0, AREAVALUE / 2, -AREAVALUE / 2)
+    wallMesh.position.set(0, AREAVALUE / 2, -AREAVALUE / 2);
+    wallMesh.name = 'wall';
+    meshes.push(wallMesh);
     scene.add(wallMesh);
 
     // Box
@@ -108,6 +110,7 @@ const createMesh = function () {
     );
     pointerMesh.rotation.x = -Math.PI / 2;
     pointerMesh.position.set(0, 0.11, AREAVALUE / 2 - 5);
+    pointerMesh.material.transparent = true;
     scene.add(pointerMesh);
 
     
@@ -126,44 +129,56 @@ const raycasting = function () {
     checkIntersects();
 }
 
-let cameraMoves, cameraMovesPoints;
+let cameraMoves, cameraMovesPoints, cameraMoves2, cameraMovesPoints2;
 let targetMoves, targetMovesPoints;
 const checkIntersects = function () {
     const intersects = raycaster.intersectObjects(meshes);
+    pointerMesh.material.opacity = 0;
+    
     for (const item of intersects) {
         if ( item.object.name === 'floor' ) {
+            pointerMesh.material.opacity = 1;
+
             destinationPoint.x = item.point.x;
             destinationPoint.y = 4;
             destinationPoint.z = item.point.z;
 
             if ( isMouseClick ) {
-                // isCameraMoving = true;
+                isCameraMove = true;
+                startTime = Date.now();
 
-                cameraMoves = new THREE.CatmullRomCurve3([
+                cameraMoves = new THREE.QuadraticBezierCurve3(
                     camera.position, 
                     new THREE.Vector3(camera.position.x, destinationPoint.y, camera.position.z + (destinationPoint.z - camera.position.z) / 2),
                     destinationPoint
-                ])
+                );
                 cameraMovesPoints = cameraMoves.getSpacedPoints(100);
 
-                const cameraMovesLine = new THREE.Line(
-                    new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
-                    new THREE.LineBasicMaterial({ color: 'red' })
-                );
-                scene.add(cameraMovesLine);
+                // const cameraMovesLine = new THREE.Line(
+                //     new THREE.BufferGeometry().setFromPoints(cameraMovesPoints),
+                //     new THREE.LineBasicMaterial({ color: 'red' })
+                // );
+                // scene.add(cameraMovesLine);
+                
+                // targetMoves = new THREE.CatmullRomCurve3([
+                //     orbitControls.target, 
+                //     destinationPoint
+                // ])
+                // targetMovesPoints = targetMoves.getSpacedPoints(100);
 
-                let cameraIntervalNum = 0;
-                const cameraInterval = setInterval(function () {
-                    camera.position.set(
-                        cameraMovesPoints[cameraIntervalNum].x,
-                        cameraMovesPoints[cameraIntervalNum].y,
-                        cameraMovesPoints[cameraIntervalNum].z
-                    );
-                    cameraIntervalNum++
-                }, 10);
-                setTimeout(function () {
-                    clearInterval(cameraInterval);
-                }, 1000);
+                // let targetIntervalNum = 0;
+                // const targetInterval = setInterval(function () {
+                //     orbitControls.target.set(
+                //         targetMovesPoints[targetIntervalNum].x,
+                //         targetMovesPoints[targetIntervalNum].y,
+                //         targetMovesPoints[targetIntervalNum].z
+                //     );
+                //     targetIntervalNum++
+                // }, 10);
+
+                // setTimeout(function () {
+                //     clearInterval(targetInterval);
+                // }, 1000);
 
                 isMouseClick = false;
             }
@@ -174,10 +189,29 @@ const checkIntersects = function () {
     }
 }
 
+let startTime = 0;
+let isCameraMove = false;
 const draw = function () {
-    console.log(orbitControls.target, camera.position)
 
-    orbitControls.update();
+    if ( isCameraMove ) {
+        let elapsed = Math.floor((Date.now() - startTime) / 10);
+
+        if( elapsed < cameraMovesPoints.length ) {
+            camera.position.set(
+                cameraMovesPoints[elapsed].x,
+                cameraMovesPoints[elapsed].y,
+                cameraMovesPoints[elapsed].z
+            );
+        }
+        console.log(cameraMovesPoints[elapsed], camera.position);
+
+        if ( elapsed > cameraMovesPoints.length ) {
+            elapsed = 0;
+            isCameraMove = false;
+        }
+    }
+
+    // orbitControls.update();
 
     renderer.render( scene, camera );
     renderer.setAnimationLoop(draw);
